@@ -10,7 +10,8 @@
 
 QuarterColorPicker::QuarterColorPicker(PNG& inputimg, unsigned char b_amount)
 {
-    // Complete your implementation below
+    referenceimg = inputimg;
+    brightamount = b_amount;
 	
 }
 
@@ -32,8 +33,36 @@ QuarterColorPicker::QuarterColorPicker(PNG& inputimg, unsigned char b_amount)
  */
 RGBAPixel QuarterColorPicker::operator()(PixelPoint p)
 {
-    // Replace the line below with your implementation
-    return RGBAPixel();
+    // scale each dimension by half
+    referenceimg.resize(referenceimg.width() / 2, referenceimg.height() / 2);
+
+    RGBAPixel* par = referenceimg.getPixel(p.x, p.y);
+    RGBAPixel* east = referenceimg.getPixel(p.x + 1, p.y);
+    RGBAPixel* south = referenceimg.getPixel(p.x, p.y + 1);
+    RGBAPixel* southeast = referenceimg.getPixel(p.x + 1, p.y + 1);
+
+    // bilinear interpolation
+    int top_red_avg = (par->r + east->r) / 2;
+    int top_green_avg = (par->g + east->g) / 2;
+    int top_blue_avg = (par->b + east->b) / 2;
+    double top_a_avg = (par->a + east->a) / 2;
+
+    int bot_red_avg = (south->r + southeast->r) / 2;
+    int bot_green_avg = (south->g + southeast->g) / 2;
+    int bot_blue_avg = (south->b + southeast->b) / 2;
+    double bot_a_avg = (south->a + southeast->a) / 2;
+
+    int pixel_red_avg = (top_red_avg + bot_red_avg) / 2;
+    int pixel_green_avg = (top_green_avg + bot_green_avg) / 2;
+    int pixel_blue_avg = (top_blue_avg + bot_blue_avg) / 2;
+    double pixel_a_avg = (top_a_avg + bot_a_avg) / 2;
+
+    // brighten pixel
+    pixel_red_avg = min(pixel_red_avg + brightamount, 255);
+    pixel_green_avg = min(pixel_green_avg + brightamount, 255);
+    pixel_blue_avg = min(pixel_blue_avg + brightamount, 255);
+
+    return RGBAPixel(pixel_red_avg, pixel_green_avg, pixel_blue_avg, pixel_a_avg);
 }
 
 /**

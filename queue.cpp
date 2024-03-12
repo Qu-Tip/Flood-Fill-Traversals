@@ -16,7 +16,6 @@ template <class T>
 void Queue<T>::Enqueue(T const& item)
 {
 	stack_1.Add(item);
-	
 }
 
 /**
@@ -92,17 +91,15 @@ T Queue<T>::Remove()
 template <class T>
 T Queue<T>::Peek()
 {
-	// complete your implementation below
-  
 	if (stack_2.IsEmpty()) {
 		while (!stack_1.IsEmpty()) {
-			
 			stack_2.Push(stack_1.Pop());
 		}
 	}
 
-	stack_2.Peek();
+	return stack_2.Peek();
 }
+
 
 /*
 *  Determines if the Queue is empty.

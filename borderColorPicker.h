@@ -33,7 +33,7 @@ class BorderColorPicker : public ColorPicker
      * @param width        Number of pixels to color around border.
      * @param inputimage   Image for referencing original image colors.
      * @param scolor       Color of seed point
-	 * @param bcolor       Color to be used for painting the fill border.
+	   * @param bcolor       Color to be used for painting the fill border.
      * @param tol          Tolerance used to determine the border of the fill.
      */
     BorderColorPicker(unsigned int width, PNG& inputimage, RGBAPixel scolor, RGBAPixel bcolor, double tol);
@@ -53,7 +53,7 @@ class BorderColorPicker : public ColorPicker
     unsigned int borderwidth; // Number of pixels to use for border
     PNG img;                  // Original image used in flood fill algorithm
     RGBAPixel seedcolor;      // Color of seed point, for checking fill region
-	RGBAPixel bordercolor;    // Color used for painting the fill border
+	  RGBAPixel bordercolor;    // Color used for painting the fill border
     double tolerance;         // Tolerance used in flood fill algorithm
 };
 
