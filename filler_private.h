@@ -10,3 +10,4 @@
  */
 
  // begin your declarations below
+ bool isInTolerance(PixelPoint cp, FillerConfig& config);

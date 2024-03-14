@@ -12,10 +12,7 @@
  * @return animation object illustrating progression of flood fill algorithm
  */
 animation filler::FillBFS(FillerConfig& config) {
-	// complete your implementation below
-	// You should replace the following line with a
-	// correct call to fill.
-	return animation(); // REPLACE THIS STUB
+	return Fill<Queue>(config); 
 }
 
 /**
@@ -25,10 +22,7 @@ animation filler::FillBFS(FillerConfig& config) {
  * @return animation object illustrating progression of flood fill algorithm
  */
 animation filler::FillDFS(FillerConfig& config) {
-	// complete your implementation below
-	// You should replace the following line with a
-	// correct call to fill.
-	return animation(); // REPLACE THIS STUB
+	return Fill<Stack>(config); 
 }
 
 /**
@@ -101,11 +95,60 @@ template <template <class T> class OrderingStructure> animation filler::Fill(Fil
 	animation anim;
 	OrderingStructure<PixelPoint> os;
 
-	// complete your implementation below
-	// HINT: you will likely want to declare some kind of structure to track
-	//       which pixels have already been visited
-  
-	
+	// initialize structure to keep track of visited pixels
+	vector <vector<int>> visited;
+	for (unsigned i = 0; i < config.img.width(); i++) {
+		visited.emplace_back();
+		for (unsigned j = 0; j < config.img.height(); j++) {
+			visited[i].push_back(0);
+		}
+	}
+	anim.addFrame(config.img);
+	os.Add(config.seedpoint);
 
+	while (!os.IsEmpty()) {
+		PixelPoint curr = os.Remove();														// remove point from ordering structure
+		visited[curr.x][curr.y] = 1;
+
+		if (isInTolerance(curr, config)) {
+			
+			RGBAPixel* pixel = config.img.getPixel(curr.x, curr.y);
+			*pixel = config.picker->operator()(curr);
+
+			// Part 3:
+			framecount++;
+			if (framecount % config.frameFreq == 0) {
+				anim.addFrame(config.img);
+			}
+
+			// Part 2:
+			if (visited[curr.x][curr.y - 1] != 1 && (curr.y - 1) >= 0) { 					// up
+				os.Add(PixelPoint(curr.x, curr.y - 1));
+			}
+
+			if (visited[curr.x + 1][curr.y] != 1 && (curr.x + 1) < config.img.width()) {	// right
+				os.Add(PixelPoint(curr.x + 1, curr.y));
+			}
+
+			if (visited[curr.x][curr.y + 1] != 1 && (curr.y + 1) < config.img.height()) {	// down
+				os.Add(PixelPoint(curr.x, curr.y + 1));
+			}
+
+			if (visited[curr.x - 1][curr.y] != 1 && (curr.x - 1) >= 0) {					// left
+				os.Add(PixelPoint(curr.x - 1, curr.y));
+			}
+		}
+
+	}
+	
+	// Part 4:
+	anim.addFrame(config.img);
 	return anim;
 }
+
+bool filler::isInTolerance(PixelPoint cp, FillerConfig& config) {
+	return cp.color.distanceTo(*config.img.getPixel(cp.x, cp.y)) < config.tolerance;
+}
+
+
+

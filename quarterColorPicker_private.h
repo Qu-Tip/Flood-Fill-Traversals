@@ -10,3 +10,7 @@
  */
 
  // begin your declarations below
+
+/*
+*/
+PNG bilinear_Int(PNG& refimg);

@@ -33,38 +33,43 @@ QuarterColorPicker::QuarterColorPicker(PNG& inputimg, unsigned char b_amount)
  */
 RGBAPixel QuarterColorPicker::operator()(PixelPoint p)
 {
-    // scale each dimension by half
-    referenceimg.resize(referenceimg.width() / 2, referenceimg.height() / 2);
+    PNG tiled_img = bilinear_Int(referenceimg);
+    RGBAPixel* pixel = tiled_img.getPixel(p.x/2, p.y/2);
 
-    RGBAPixel* par = referenceimg.getPixel(p.x, p.y);
-    RGBAPixel* east = referenceimg.getPixel(p.x + 1, p.y);
-    RGBAPixel* south = referenceimg.getPixel(p.x, p.y + 1);
-    RGBAPixel* southeast = referenceimg.getPixel(p.x + 1, p.y + 1);
+    pixel->r = min(pixel->r + brightamount, 255);
+    pixel->g = min(pixel->g + brightamount, 255);
+    pixel->b = min(pixel->b + brightamount, 255);
 
-    // bilinear interpolation
-    int top_red_avg = (par->r + east->r) / 2;
-    int top_green_avg = (par->g + east->g) / 2;
-    int top_blue_avg = (par->b + east->b) / 2;
-    double top_a_avg = (par->a + east->a) / 2;
-
-    int bot_red_avg = (south->r + southeast->r) / 2;
-    int bot_green_avg = (south->g + southeast->g) / 2;
-    int bot_blue_avg = (south->b + southeast->b) / 2;
-    double bot_a_avg = (south->a + southeast->a) / 2;
-
-    int pixel_red_avg = (top_red_avg + bot_red_avg) / 2;
-    int pixel_green_avg = (top_green_avg + bot_green_avg) / 2;
-    int pixel_blue_avg = (top_blue_avg + bot_blue_avg) / 2;
-    double pixel_a_avg = (top_a_avg + bot_a_avg) / 2;
-
-    // brighten pixel
-    pixel_red_avg = min(pixel_red_avg + brightamount, 255);
-    pixel_green_avg = min(pixel_green_avg + brightamount, 255);
-    pixel_blue_avg = min(pixel_blue_avg + brightamount, 255);
-
-    return RGBAPixel(pixel_red_avg, pixel_green_avg, pixel_blue_avg, pixel_a_avg);
+    return *pixel;
 }
 
 /**
  * Add your private QuarterColorPicker function implementations below
  */
+
+ PNG QuarterColorPicker::bilinear_Int(PNG& refimg) 
+ {
+    PNG tiled_img = refimg;
+    tiled_img.resize(refimg.width() / 2, refimg.height() / 2);
+
+    for (int i = 0; i < refimg.width(); i += 2) {
+        for (int j = 0; j < refimg.height(); j += 2) {
+
+            // get the pixel and its neighbours (2 x 2)
+            RGBAPixel* par = refimg.getPixel(i, j);
+            RGBAPixel* east = refimg.getPixel(i + 1, j);
+            RGBAPixel* south = refimg.getPixel(i, j + 1);
+            RGBAPixel* southeast = refimg.getPixel(i + 1, j + 1);
+
+            // bilinear interpolation
+            int pixel_red_avg = (((par->r + east->r) / 2) + ((south->r + southeast->r) / 2)) / 2;
+            int pixel_green_avg = (((par->g + east->g) / 2) + ((south->g + southeast->g) / 2)) / 2;
+            int pixel_blue_avg = (((par->b + east->b) / 2) + ((south->b + southeast->b) / 2)) / 2;
+            double pixel_a_avg = (((par->a + east->a) / 2) + ((south->a + southeast->a) / 2)) / 2;
+
+            RGBAPixel* tiled = tiled_img.getPixel(i/2, j/2);
+            *tiled = RGBAPixel(pixel_red_avg, pixel_green_avg, pixel_blue_avg, pixel_a_avg);
+        }
+    }
+    return tiled_img;
+ }
