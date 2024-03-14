@@ -33,6 +33,39 @@ QuarterColorPicker::QuarterColorPicker(PNG& inputimg, unsigned char b_amount)
  */
 RGBAPixel QuarterColorPicker::operator()(PixelPoint p)
 {
+
+    unsigned int tiledX = p.x % (referenceimg.width() / 2);
+    unsigned int tiledY = p.y % (referenceimg.height() / 2);
+
+    tiledX *= 2;
+    tiledY *= 2;
+
+    if (tiledX >= referenceimg.width() - 1) {
+        tiledX = referenceimg.width() - 2;
+    }
+
+    if (tiledY >= referenceimg.height() - 1) {
+        tiledY = referenceimg.height() - 2;
+    }
+
+    RGBAPixel* par = referenceimg.getPixel(tiledX, tiledY);
+    RGBAPixel* east = referenceimg.getPixel(tiledX + 1, tiledY);
+    RGBAPixel* south = referenceimg.getPixel(tiledX, tiledY + 1);
+    RGBAPixel* southeast = referenceimg.getPixel(tiledX + 1, tiledY + 1);
+
+    unsigned char avgR = (par->r + east->r + south->r + southeast->r) / 4;
+    unsigned char avgG = (par->g + east->g + south->g + southeast->g) / 4;
+    unsigned char avgB = (par->b + east->b + south->b + southeast->b) / 4;
+
+    unsigned char newR = min(avgR + brightamount, 255);
+    unsigned char newG = min(avgG + brightamount, 255);
+    unsigned char newB = min(avgB + brightamount, 255);
+
+    return RGBAPixel(newR, newG, newB, par->a);
+
+
+// AATTEMPT 1
+    /*
     PNG tiled_img = bilinear_Int(referenceimg);
     RGBAPixel* pixel = tiled_img.getPixel(p.x/2, p.y/2);
 
@@ -41,6 +74,7 @@ RGBAPixel QuarterColorPicker::operator()(PixelPoint p)
     pixel->b = min(pixel->b + brightamount, 255);
 
     return *pixel;
+    */
 }
 
 /**
