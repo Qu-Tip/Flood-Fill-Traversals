@@ -36,31 +36,30 @@ BorderColorPicker::BorderColorPicker(unsigned int width, PNG& inputimage, RGBAPi
  */
 RGBAPixel BorderColorPicker::operator()(PixelPoint p)
 {
-    if (p.x < borderwidth || p.x >= (img.width() - borderwidth) || p.y < borderwidth || p.y >= (img.height() - borderwidth)) {
-        return bordercolor;
+    // check if original pixel is within tolerance of seedcolor; if not, return original color of pixel
+    if (img.getPixel(p.x, p.y)->distanceTo(seedcolor) > tolerance) {
+        return *img.getPixel(p.x, p.y);
     }
 
-
-    for (int xx = p.x-borderwidth; xx <= p.y+borderwidth; ++xx) {
-        for (int yy = p.y-borderwidth; yy <= p.y+borderwidth; ++yy) {
-            int nx = p.x + xx;
-            int ny = p.y + yy;
-
-        //TODO: account for euclidean radius?? 
-        
-            if (nx >= 0 && nx < img.width() && ny >= 0 && ny < img.height()) {
-                RGBAPixel* pixelColor = img.getPixel(nx, ny);
-
-                if (pixelColor->distanceTo(seedcolor) > tolerance) {
-                    return bordercolor; 
+    for (int xx = -borderwidth; xx <= (int) borderwidth; xx++) {
+        for (int yy = -borderwidth; yy <= (int) borderwidth; yy++) {
+            
+            // check if pixel is within distance of the edge of the PNG
+            if (((p.x + xx) > (img.width() - 1) || (p.x + xx) < 0 || (p.y + yy) > (img.height() - 1) || (p.y + yy) < 0) 
+            && ((xx * xx + yy * yy) <= (int) (borderwidth * borderwidth))) {
+                return bordercolor;
+            } else {
+                // pixel is within distance of any border pixel (not within tolerance of seed colour)
+                if (img.getPixel(p.x + xx, p.y + xx)->distanceTo(seedcolor) > tolerance) {
+                    return bordercolor;
                 }
             }
         }
     }
 
-
-    return seedcolor; 
+    return *img.getPixel(p.x, p.y);
 }
+
 
 /**
  * Add your private BorderColorPicker function implementations below
