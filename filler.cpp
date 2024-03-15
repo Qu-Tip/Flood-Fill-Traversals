@@ -91,6 +91,7 @@ template <template <class T> class OrderingStructure> animation filler::Fill(Fil
 	 *
 	 */
 
+/*
 	int framecount = 0; // increment after processing one pixel; used for producing animation frames (step 3 above)
 	animation anim;
 	OrderingStructure<PixelPoint> os;
@@ -144,11 +145,77 @@ template <template <class T> class OrderingStructure> animation filler::Fill(Fil
 	// Part 4:
 	anim.addFrame(config.img);
 	return anim;
+
+	*/
+
+animation anim;
+OrderingStructure<PixelPoint> os;
+
+bool** visited = new bool*[config.img.height()];
+for (int i = 0; i < config.img.height(); i++) {
+    visited[i] = new bool[config.img.width()];
+    for (int j = 0; j < config.img.width(); j++) {
+        visited[i][j] = false; 
+    }
 }
 
-bool filler::isInTolerance(PixelPoint cp, FillerConfig& config) {
-	return cp.color.distanceTo(*config.img.getPixel(cp.x, cp.y)) < config.tolerance;
+os.Add(PixelPoint(config.seedpoint.x, config.seedpoint.y, config.seedpoint.color));
+visited[config.seedpoint.y][config.seedpoint.x] = true;
+
+int pixelsFilled = 0;
+anim.addFrame(config.img);
+
+while (!os.IsEmpty()) {
+    PixelPoint current = os.Remove();
+
+    if (isInTolerance(current, config)) {
+        config.img.getPixel(current.x, current.y)->r = config.picker->operator()(current).r;
+        config.img.getPixel(current.x, current.y)->g = config.picker->operator()(current).g;
+        config.img.getPixel(current.x, current.y)->b = config.picker->operator()(current).b;
+        pixelsFilled++;
+
+        if (pixelsFilled % config.frameFreq == 0) {
+            anim.addFrame(config.img);
+        }
+
+        int dx[] = {0, 1, 0, -1};
+        int dy[] = {-1, 0, 1, 0};
+        for (int k = 0; k < 4; k++) {
+            int nx = current.x + dx[k];
+            int ny = current.y + dy[k];
+
+
+            if (nx >= 0 && nx < config.img.width() && ny >= 0 && ny < config.img.height() && !visited[ny][nx]) {
+                RGBAPixel* pixel = config.img.getPixel(nx, ny);
+				os.Add(PixelPoint(nx, ny, *pixel));
+                visited[ny][nx] = true;
+            }
+        }
+    }
 }
+
+for (int i = 0; i < config.img.height(); i++) {
+    delete[] visited[i];
+}
+delete[] visited;
+
+anim.addFrame(config.img);
+return anim;
+
+}
+
+
+bool filler::isInTolerance(PixelPoint curr, FillerConfig& config) {
+    // Obtain a const reference to the current pixel's color.
+    const RGBAPixel& currPixelColor = *config.img.getPixel(curr.x, curr.y);
+    // Make a non-const copy of the seed color.
+    RGBAPixel seedColorCopy = config.seedpoint.color;
+
+    // Compare the current pixel's color to the seed color using the distanceTo method.
+    // This should be valid as seedColorCopy is non-const and distanceTo is being called on it.
+    return seedColorCopy.distanceTo(currPixelColor) <= config.tolerance;
+}
+
 
 
 
