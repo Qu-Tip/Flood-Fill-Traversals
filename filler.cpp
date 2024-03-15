@@ -206,13 +206,11 @@ return anim;
 
 
 bool filler::isInTolerance(PixelPoint curr, FillerConfig& config) {
-    // Obtain a const reference to the current pixel's color.
+
     const RGBAPixel& currPixelColor = *config.img.getPixel(curr.x, curr.y);
-    // Make a non-const copy of the seed color.
+
     RGBAPixel seedColorCopy = config.seedpoint.color;
 
-    // Compare the current pixel's color to the seed color using the distanceTo method.
-    // This should be valid as seedColorCopy is non-const and distanceTo is being called on it.
     return seedColorCopy.distanceTo(currPixelColor) <= config.tolerance;
 }
 
